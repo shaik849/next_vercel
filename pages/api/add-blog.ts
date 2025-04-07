@@ -1,41 +1,63 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "./auth/[...nextauth]"; // Import authOptions
-import { prisma } from "@/lib/prisma";
+import { IncomingForm } from "formidable";
+import fs from "fs";
+import path from "path";
+import { prisma } from "@/lib/prisma"; // Adjust path if needed
+import { getServerSession } from "next-auth";
+import { authOptions } from "./auth/[...nextauth]";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  try {
-    const session = await getServerSession(req, res, authOptions);
+  const session = await getServerSession(req, res, authOptions);
 
-    console.log("Session data:", session.user); // Debugging session
+  if (!session || session.user.role !== "ADMIN") {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
-    if (!session || !session.user || session.user.role !== "ADMIN") {
-      return res.status(401).json({ error: "Unauthorized" });
+  const form = new IncomingForm({
+    uploadDir: path.join(process.cwd(), "/public/uploads"),
+    keepExtensions: true,
+  });
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error("Form parse error:", err);
+      return res.status(500).json({ error: "Failed to parse form" });
     }
 
-    const { title, image, description, content } = req.body;
+    const { title, description, content } = fields;
+    const image = files.image?.[0] || files.image;
 
-    if (!title || !image || !description || !content) {
+    if (!title || !description || !content || !image) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const newBlog = await prisma.blog.create({
-      data: { 
-        title, 
-        image, 
-        description, 
-        content, 
-        authorId: session.user.id, // Use session user ID
-      },
-    });
+    const fileName = path.basename(image.filepath); // gets saved file name
+    const imageUrl = `/uploads/${fileName}`;
 
-    return res.status(201).json(newBlog);
-  } catch (error) {
-    console.error("Error adding blog:", error);
-    return res.status(500).json({ error: "Server error" });
-  }
+    try {
+      const newBlog = await prisma.blog.create({
+        data: {
+          title: String(title),
+          description: String(description),
+          content: String(content),
+          image: imageUrl,
+          authorId: session.user.id,
+        },
+      });
+
+      return res.status(201).json(newBlog);
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      return res.status(500).json({ error: "Error saving to database" });
+    }
+  });
 }

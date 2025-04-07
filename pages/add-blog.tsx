@@ -1,77 +1,48 @@
-"use client";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
-export default function AddBlog() {
-  const { data: session, status } = useSession();
+export default function AddBlogPage() {
   const router = useRouter();
-
   const [title, setTitle] = useState("");
-  const [image, setImage] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
+  const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // Redirect if not an admin
-  if (status === "loading") return <p>Loading...</p>;
-  if (status === "unauthenticated" || session?.user?.role !== "ADMIN") {
-    router.push("/");
-    return null;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    if (!image) return setError("Image is required");
 
-    const blogData = {
-      title,
-      image,
-      description,
-      content,
-      authorId: session?.user?.id, // Ensure user ID is included
-    };
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("content", content);
+    formData.append("image", image);
 
-    try {
-      const res = await fetch("/api/add-blog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(blogData),
-      });
+    const res = await fetch("/api/add-blog", {
+      method: "POST",
+      body: formData,
+    });
 
-      if (!res.ok) throw new Error("Failed to add blog");
+    const data = await res.json();
 
-      router.push("/"); // Redirect to home after success
-    } catch (err) {
-      setError("Error adding blog. Try again.");
-    } finally {
-      setLoading(false);
+    if (res.ok) {
+      router.push("/");
+    } else {
+      setError(data.error || "Something went wrong");
     }
-  }
+  };
 
   return (
-    <div className="max-w-lg mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Add Blog</h1>
-
-      {error && <p className="text-red-500">{error}</p>}
-
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
+    <div className="max-w-xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Add New Blog</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Image URL"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
           required
         />
         <input
@@ -79,22 +50,26 @@ export default function AddBlog() {
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="border p-2 rounded"
+          className="w-full border p-2 rounded"
           required
         />
         <textarea
           placeholder="Content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="border p-2 rounded h-32"
+          className="w-full border p-2 rounded h-40"
           required
-        ></textarea>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white p-2 rounded"
-          disabled={loading}
-        >
-          {loading ? "Adding..." : "Add Blog"}
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files?.[0] || null)}
+          className="w-full border p-2 rounded"
+          required
+        />
+        {error && <p className="text-red-500">{error}</p>}
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          Submit
         </button>
       </form>
     </div>
