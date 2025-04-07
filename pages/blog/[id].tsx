@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import Image from "next/image";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const id = context.params?.id as string;
@@ -97,7 +98,7 @@ export default function BlogPage({ blog, isAdmin }: BlogPageProps) {
           <p className="text-gray-600 mb-4">
             by <span className="font-semibold">{blog.author?.name || "Unknown"}</span>
           </p>
-          <img
+          <Image
             src={blog.image}
             alt={blog.title}
             className="w-full h-64 object-cover rounded mb-4"
