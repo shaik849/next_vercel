@@ -19,7 +19,6 @@ export const authOptions = {
           throw new Error("Email and Password are required");
         }
 
-        // Find user by email
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
@@ -28,7 +27,6 @@ export const authOptions = {
           throw new Error("No user found");
         }
 
-        // Check password
         const isValidPassword = await bcrypt.compare(credentials.password, user.password);
         if (!isValidPassword) {
           throw new Error("Invalid password");
@@ -38,7 +36,7 @@ export const authOptions = {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role, // ✅ Ensure role is included
+          role: user.role,
         };
       },
     }),
@@ -46,15 +44,15 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role // ✅ Ensure role is included in session
+        session.user.id = token.id as string; // Type assertion for safety
+        session.user.role = token.role as string; // Type assertion for safety
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role; // ✅ Ensure role is stored in JWT
+        token.role = user.role;
       }
       return token;
     },
