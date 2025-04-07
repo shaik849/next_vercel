@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./api/auth/[...nextauth]";
 import { GetServerSidePropsContext } from "next";
+import { Session } from "next-auth"; // ✅ Import Session type
 
 export default function AdminPage({ userRole }: { userRole: string }) {
   if (userRole !== "admin") {
@@ -12,18 +13,22 @@ export default function AdminPage({ userRole }: { userRole: string }) {
 
 // Protect page using getServerSideProps
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context.req, context.res, authOptions);
+  const session: Session | null = await getServerSession(
+    context.req,
+    context.res,
+    authOptions
+  );
 
-  if (!session || session.user.role !== "admin") {
+  if (!session || session.user.role !== "ADMIN") {
     return {
       redirect: {
-        destination: "/signin", // Redirect to login if not admin
+        destination: "/signin",
         permanent: false,
       },
     };
   }
 
   return {
-    props: { userRole: session.user.role }, // Pass role as a prop
+    props: { userRole: session.user.role },
   };
 }

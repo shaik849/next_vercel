@@ -44,8 +44,8 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string; // Type assertion for safety
-        session.user.role = token.role as string; // Type assertion for safety
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     },

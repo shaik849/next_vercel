@@ -4,7 +4,7 @@ import path from "path";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 
-export default async function handler(req, res) {
+export default async function handler(req: Request, res: Response) {
   const {
     query: { id },
     method,
