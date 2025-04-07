@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import fs from "fs";
-import path from "path";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
+import cloudinary from "@/lib/cloudinary"; // cloudinary config file
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const {
@@ -23,10 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const updatedBlog = await prisma.blog.update({
           where: { id: String(id) },
-          data: {
-            title,
-            content,
-          },
+          data: { title, content },
         });
         return res.status(200).json(updatedBlog);
       } catch (error) {
@@ -39,13 +35,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const blog = await prisma.blog.findUnique({ where: { id: String(id) } });
         if (!blog) return res.status(404).json({ error: "Blog not found" });
 
-        // Delete the image file
-        const imagePath = path.join(process.cwd(), "public", blog.image);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
+        // 🌐 Extract public_id from Cloudinary image URL (assumes image URL has public_id)
+        const publicIdMatch = blog.image.match(/\/upload\/(?:v\d+\/)?([^\.]+)\./);
+        const publicId = publicIdMatch ? publicIdMatch[1] : null;
+
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
         }
 
-        // Delete the blog from DB
         await prisma.blog.delete({ where: { id: String(id) } });
 
         return res.status(200).json({ message: "Blog and image deleted" });
