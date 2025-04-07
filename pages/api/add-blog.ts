@@ -1,7 +1,7 @@
 import { IncomingForm } from "formidable";
-// import fs from "fs";
+import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
-import { prisma } from "@/lib/prisma"; // Adjust path if needed
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 
@@ -11,7 +11,7 @@ export const config = {
   },
 };
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const fileName = path.basename(image.filepath); // gets saved file name
+    const fileName = path.basename(image.filepath);
     const imageUrl = `/uploads/${fileName}`;
 
     try {

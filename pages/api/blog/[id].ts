@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import fs from "fs";
 import path from "path";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const {
     query: { id },
     method,
