@@ -34,13 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const { title, description, content } = fields;
-    const image = files.image?.[0] || files.image;
 
-    if (!title || !description || !content || !image) {
+    const imageFile = Array.isArray(files.image) ? files.image[0] : files.image;
+
+    if (!title || !description || !content || !imageFile || !imageFile.filepath) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const fileName = path.basename(image.filepath);
+    const fileName = path.basename(imageFile.filepath);
     const imageUrl = `/uploads/${fileName}`;
 
     try {
