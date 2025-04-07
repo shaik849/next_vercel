@@ -47,7 +47,7 @@ export const authOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
-        session.user.role = token.role as "ADMIN" | "USER";; // ✅ Ensure role is included in session
+        session.user.role = token.role // ✅ Ensure role is included in session
       }
       return session;
     },
