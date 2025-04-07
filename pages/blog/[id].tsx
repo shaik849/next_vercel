@@ -99,10 +99,12 @@ export default function BlogPage({ blog, isAdmin }: BlogPageProps) {
             by <span className="font-semibold">{blog.author?.name || "Unknown"}</span>
           </p>
           <Image
-            src={blog.image}
-            alt={blog.title}
-            className="w-full h-64 object-cover rounded mb-4"
-          />
+  src={blog.image}
+  alt="Blog Image"
+  width={800}
+  height={300}
+  className="w-full h-40 object-cover"
+/>
           <div className="prose whitespace-pre-wrap">{blog.content}</div>
           {isAdmin && (
             <div className="mt-6 flex gap-4">
