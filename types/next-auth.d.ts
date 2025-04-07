@@ -1,15 +1,16 @@
-// import NextAuth from "next-auth";
+import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
     user: {
-      id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-      role: string;
-    }& DefaultSession["USER"];
+      id: string;         // Required
+      name: string;       // Required (matches Prisma)
+      email: string;      // Required (matches Prisma)
+      image?: string | null; // Optional (from DefaultSession)
+      role: string;       // Required (matches Prisma default "USER")
+    } & DefaultSession["user"]; // Extend default properties
   }
+
   interface User {
     id: string;
     role: string;
