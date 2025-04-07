@@ -1,12 +1,12 @@
 import "@/styles/globals.css";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, Session } from "next-auth/react"; // Import Session type
 import type { AppProps } from "next/app";
 import Navbar from "@/components/Navbar";
 
-// Define the type for pageProps including session
+// Define the custom pageProps type with the correct Session type
 interface CustomAppProps extends AppProps {
   pageProps: {
-    session?: any; // Temporary; we'll refine this
+    session: Session; // Use the augmented Session type
   };
 }
 
