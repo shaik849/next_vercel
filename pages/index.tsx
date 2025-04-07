@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -68,11 +69,13 @@ export default function Home() {
           {blogs.map((blog) => (
             <Link href={`/blog/${blog.id}`} key={blog.id} passHref>
               <div className="border rounded-lg shadow-md bg-white overflow-hidden cursor-pointer hover:shadow-lg transition">
-                <img
-                  src={blog.image}
-                  alt={blog.title}
-                  className="w-full h-40 object-cover"
-                />
+              <Image
+  src={blog.image}
+  alt={blog.title}
+  width={800} // or your desired width
+  height={300} // or your desired height
+  className="w-full h-40 object-cover"
+/>
                 <div className="p-4">
                   <h3 className="font-bold text-lg">{blog.title}</h3>
                   <p className="text-gray-600">{blog.description.substring(0, 80)}...</p>

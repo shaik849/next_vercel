@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         });
         return res.status(200).json(updatedBlog);
       } catch (error) {
-        return res.status(500).json({ error: "Failed to update blog" });
+        return res.status(500).json({ error: "Failed to update blog " + error });
       }
     }
 
