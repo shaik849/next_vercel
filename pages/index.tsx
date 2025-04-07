@@ -6,9 +6,21 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
+// Define a type for Blog with author
+type BlogWithAuthor = {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  image: string;
+  author: {
+    name: string | null;
+  } | null;
+};
+
 export default function Home() {
   const { data: session, status } = useSession();
-  const [blogs, setBlogs] = useState([]);
+  const [blogs, setBlogs] = useState<BlogWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -19,7 +31,7 @@ export default function Home() {
     }
   }, [status, router]);
 
-  // Fetch blogs on client side
+  // Fetch blogs
   useEffect(() => {
     async function fetchBlogs() {
       if (!session) return;
@@ -69,13 +81,13 @@ export default function Home() {
           {blogs.map((blog) => (
             <Link href={`/blog/${blog.id}`} key={blog.id} passHref>
               <div className="border rounded-lg shadow-md bg-white overflow-hidden cursor-pointer hover:shadow-lg transition">
-              <Image
-  src={blog.image}
-  alt={blog.title}
-  width={800} // or your desired width
-  height={300} // or your desired height
-  className="w-full h-40 object-cover"
-/>
+                <Image
+                  src={blog.image || "/fallback.jpg"}
+                  alt={blog.title}
+                  width={800}
+                  height={300}
+                  className="w-full h-40 object-cover"
+                />
                 <div className="p-4">
                   <h3 className="font-bold text-lg">{blog.title}</h3>
                   <p className="text-gray-600">{blog.description.substring(0, 80)}...</p>
