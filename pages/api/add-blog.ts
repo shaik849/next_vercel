@@ -1,13 +1,16 @@
+// pages/api/add-blog.ts
+
 import { IncomingForm, File as FormidableFile, Files } from "formidable";
 import type { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
-import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
+import { prisma } from "@/lib/prisma";
+import fs from "fs";
+import { put } from "@vercel/blob";
 
 export const config = {
   api: {
-    bodyParser: false, // Required for formidable to parse form-data
+    bodyParser: false,
   },
 };
 
@@ -22,11 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const form = new IncomingForm({
-    uploadDir: path.join(process.cwd(), "/public/uploads"),
-    keepExtensions: true,
-    multiples: false,
-  });
+  const form = new IncomingForm({ keepExtensions: true, multiples: false });
 
   form.parse(req, async (err, fields, files: Files) => {
     if (err) {
@@ -51,24 +50,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Missing required fields or image upload failed" });
     }
 
-    const fileName = path.basename(imageFile.filepath);
-    const imageUrl = `/uploads/${fileName}`;
-
     try {
+      // ✅ Upload to Vercel Blob
+      const stream = fs.createReadStream(imageFile.filepath);
+      const { url } = await put(`blog-images/${imageFile.originalFilename}`, stream, {
+        access: "public",
+      });
+
+      // ✅ Save blog with image URL
       const newBlog = await prisma.blog.create({
         data: {
           title: blogTitle,
           description: blogDescription,
           content: blogContent,
-          image: imageUrl,
+          image: url,
           authorId: session.user.id,
         },
       });
 
       return res.status(201).json(newBlog);
-    } catch (dbError) {
-      console.error("Database error:", dbError);
-      return res.status(500).json({ error: "Error saving to database" });
+    } catch (error) {
+      console.error("Error uploading or saving blog:", error);
+      return res.status(500).json({ error: "Error uploading or saving blog" });
     }
   });
 }
