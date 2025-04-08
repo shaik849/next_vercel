@@ -8,7 +8,7 @@ declare module "next-auth" {
       email: string;      // Required (matches Prisma)
       image?: string | null; // Optional (from DefaultSession)
       role: string;       // Required (matches Prisma default "USER")
-    } & DefaultSession["user"]; // Extend default properties
+    } & DefaultSession["USER"]; // Extend default properties
   }
 
   interface User {
