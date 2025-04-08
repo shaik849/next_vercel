@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (file && file.filepath && imageUrl?.startsWith("https://")) {
           const url = new URL(imageUrl);
           const pathname = url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname;
-          console.log("Deleting old image:", pathname);
+          // console.log("Deleting old image:", pathname);
           await del(pathname);
         }
 
