@@ -10,7 +10,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const id = context.params?.id as string;
 
   const session = await getServerSession(context.req, context.res, authOptions);
-  const isAdmin = session?.user?.role === "ADMIN";
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/api/auth/signin",
+        permanent: false,
+      },
+    };
+  }
+
+  const isAdmin = session.user?.role === "ADMIN";
 
   const blog = await prisma.blog.findUnique({
     where: { id },
@@ -56,39 +66,53 @@ export default function BlogPage({ blog, isAdmin }: BlogPageProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [newTitle, setNewTitle] = useState(blog.title);
   const [newContent, setNewContent] = useState(blog.content);
+  const [newImage, setNewImage] = useState<File | null>(null);
 
   const handleUpdate = async () => {
-    if (newTitle === blog.title && newContent === blog.content) {
+    if (
+      newTitle === blog.title &&
+      newContent === blog.content &&
+      !newImage
+    ) {
       setIsUpdating(false);
       return;
     }
 
+    const formData = new FormData();
+    formData.append("title", newTitle);
+    formData.append("content", newContent);
+    if (newImage) {
+      formData.append("image", newImage);
+    }
+
     const res = await fetch(`/api/blog/${blog.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle, content: newContent }),
+      body: formData,
     });
 
     if (res.ok) {
       router.reload();
+    } else {
+      alert("Failed to update the blog.");
     }
   };
 
   const handleDelete = async () => {
-    const confirmDelete = confirm(`Are you sure you want to delete the blog: "${blog.title}"?`);
+    const confirmDelete = confirm(
+      `Are you sure you want to delete the blog: "${blog.title}"?`
+    );
     if (!confirmDelete) return;
-  
+
     const res = await fetch(`/api/blog/${blog.id}`, {
       method: "DELETE",
     });
-  
+
     if (res.ok) {
       router.push("/");
     } else {
       alert("Failed to delete the blog.");
     }
   };
-  
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -99,12 +123,10 @@ export default function BlogPage({ blog, isAdmin }: BlogPageProps) {
             by <span className="font-semibold">{blog.author?.name || "Unknown"}</span>
           </p>
           <Image
-  src={blog.image}
-  alt="Blog Image"
-  width={800}
-  height={300}
-  className="w-full h-40 object-cover"
-/>
+            src={blog.image}
+            alt={blog.title}
+            className="w-full h-64 object-cover rounded mb-4"
+          />
           <div className="prose whitespace-pre-wrap">{blog.content}</div>
           {isAdmin && (
             <div className="mt-6 flex gap-4">
@@ -136,6 +158,14 @@ export default function BlogPage({ blog, isAdmin }: BlogPageProps) {
             onChange={(e) => setNewContent(e.target.value)}
             className="w-full border p-2 rounded h-40"
             placeholder="Content"
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files?.[0]) setNewImage(e.target.files[0]);
+            }}
+            className="w-full border p-2 rounded"
           />
           <div className="flex gap-4">
             <button

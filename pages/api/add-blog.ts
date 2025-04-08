@@ -1,11 +1,9 @@
-// pages/api/upload.ts
+import { IncomingForm, File as FormidableFile, Files } from "formidable";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { IncomingForm, File as FormidableFile } from "formidable";
-import fs from "fs";
+import path from "path";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
-import { prisma } from "@/lib/prisma";
-import cloudinary from "@/lib/cloudinary";
 
 // Disable default body parsing
 export const config = {
@@ -22,7 +20,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const form = new IncomingForm({ keepExtensions: true });
+  const form = new IncomingForm({
+    uploadDir: path.join(process.cwd(), "/public/uploads"),
+    keepExtensions: true,
+    multiples: false,
+  });
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
@@ -42,29 +44,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Missing required fields or image" });
     }
 
-    try {
-      const uploadResult = await cloudinary.uploader.upload(imagePath, {
-        folder: "blogs",
-      });
+    const fileName = path.basename(imageFile.filepath);
+    const imageUrl = `/uploads/${fileName}`;
 
-      const blog = await prisma.blog.create({
+    try {
+      const newBlog = await prisma.blog.create({
         data: {
-          title: String(title),
-          description: String(description),
-          content: String(content),
-          image: uploadResult.secure_url,
+          title: blogTitle,
+          description: blogDescription,
+          content: blogContent,
+          image: imageUrl,
           authorId: session.user.id,
         },
       });
 
-      return res.status(201).json(blog);
-    } catch (error) {
-      console.error("Cloudinary/Prisma error:", error);
-      return res.status(500).json({ error: "Failed to upload or save blog" });
-    } finally {
-      if (imagePath && fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
+      return res.status(201).json(newBlog);
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      return res.status(500).json({ error: "Error saving to database" });
     }
   });
 }

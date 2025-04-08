@@ -59,11 +59,14 @@ export default function Home() {
     fetchBlogs();
   }, [session]);
 
-  if (status === "loading" || loading) return <p className="text-center mt-10 text-lg">Loading...</p>;
+  if (status === "loading" || loading)
+    return <p className="text-center mt-10 text-lg">Loading...</p>;
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Welcome, {session?.user?.name || "Guest"}!</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Welcome, {session?.user?.name || "Guest"}!
+      </h1>
 
       {session?.user?.role === "ADMIN" && (
         <button
@@ -82,16 +85,29 @@ export default function Home() {
             <Link href={`/blog/${blog.id}`} key={blog.id} passHref>
               <div className="border rounded-lg shadow-md bg-white overflow-hidden cursor-pointer hover:shadow-lg transition">
               <Image
+<<<<<<< HEAD
   src={blog.image}
   alt="Blog Image"
+=======
+  src={blog.image || "/fallback.jpg"}
+  alt={blog.title}
+>>>>>>> dev
   width={800}
   height={300}
   className="w-full h-40 object-cover"
 />
+<<<<<<< HEAD
+=======
+
+>>>>>>> dev
                 <div className="p-4">
                   <h3 className="font-bold text-lg">{blog.title}</h3>
-                  <p className="text-gray-600">{blog.description.substring(0, 80)}...</p>
-                  <p className="text-sm text-gray-500 mt-2">By {blog.author?.name || "Unknown"}</p>
+                  <p className="text-gray-600">
+                    {blog.description.substring(0, 80)}...
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    By {blog.author?.name || "Unknown"}
+                  </p>
                 </div>
               </div>
             </Link>
