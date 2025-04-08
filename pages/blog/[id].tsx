@@ -123,11 +123,9 @@ export default function BlogPage({ blog, isAdmin }: BlogPageProps) {
             by <span className="font-semibold">{blog.author?.name || "Unknown"}</span>
           </p>
           <Image
-            src={blog.image?.startsWith("/") ? blog.image : blog.image || "/fallback.jpg"}
+            src={blog.image}
             alt={blog.title}
-            width={800}
-            height={1200}
-            className="w-full object-cover"
+            className="w-full h-64 object-cover rounded mb-4"
           />
           <div className="prose whitespace-pre-wrap">{blog.content}</div>
           {isAdmin && (
