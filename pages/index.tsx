@@ -84,22 +84,13 @@ export default function Home() {
           {blogs.map((blog) => (
             <Link href={`/blog/${blog.id}`} key={blog.id} passHref>
               <div className="border rounded-lg shadow-md bg-white overflow-hidden cursor-pointer hover:shadow-lg transition">
-              <Image
-<<<<<<< HEAD
-  src={blog.image}
-  alt="Blog Image"
-=======
-  src={blog.image || "/fallback.jpg"}
-  alt={blog.title}
->>>>>>> dev
-  width={800}
-  height={300}
-  className="w-full h-40 object-cover"
-/>
-<<<<<<< HEAD
-=======
-
->>>>>>> dev
+                <Image
+                  src={blog.image}
+                  alt="Blog Image"
+                  width={800}
+                  height={300}
+                  className="w-full h-40 object-cover"
+                />
                 <div className="p-4">
                   <h3 className="font-bold text-lg">{blog.title}</h3>
                   <p className="text-gray-600">
