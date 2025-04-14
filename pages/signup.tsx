@@ -11,6 +11,8 @@ export default function Signup() {
   const [error, setError] = useState("");
   const router = useRouter();
 
+  console.log("HI sanavulla");
+
   // Redirect to home if already signed in
   useEffect(() => {
     if (status === "authenticated") {
@@ -44,8 +46,13 @@ export default function Signup() {
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
-      <form onSubmit={handleSignup} className="bg-white p-6 rounded-lg shadow-md w-80">
-        <h1 className="text-xl font-semibold mb-4">Sign Up</h1>
+      <form
+        onSubmit={handleSignup}
+        className="bg-white p-6 rounded-lg shadow-md w-80"
+      >
+        <h1 className="text-xl font-semibold mb-4">
+          Sign Up to Sanavulla's World
+        </h1>
 
         {error && <p className="text-red-500 mb-2">{error}</p>}
 
@@ -73,7 +80,10 @@ export default function Signup() {
           placeholder="Password"
           required
         />
-        <button type="submit" className="bg-blue-500 text-white w-full py-2 rounded">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white w-full py-2 rounded"
+        >
           Sign Up
         </button>
       </form>
