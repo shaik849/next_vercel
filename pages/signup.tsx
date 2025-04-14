@@ -51,7 +51,7 @@ export default function Signup() {
         className="bg-white p-6 rounded-lg shadow-md w-80"
       >
         <h1 className="text-xl font-semibold mb-4">
-          Sign Up to Sanavulla's World
+          Sign Up to Sanavulla World
         </h1>
 
         {error && <p className="text-red-500 mb-2">{error}</p>}
