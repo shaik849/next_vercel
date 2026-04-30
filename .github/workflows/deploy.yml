@@ -4,56 +4,59 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:   # 👈 this enables manual trigger
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: "npm"
 
+      # 3. Install deps (CI build)
       - name: Install dependencies
-        run: npm install
+        run: npm ci
         env:
-         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+      # 4. Build in CI (NOT EC2)
       - name: Build project
         run: npm run build
         env:
-         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+      # 5. Deploy (LIGHT)
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-         host: ${{ secrets.EC2_HOST }}
-         username: ubuntu
-         key: ${{ secrets.EC2_SSH_KEY }}
-         script: |
-          set -e
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
 
-          cd ~/next_vercel
+            cd ~/next_vercel
 
-          echo "📥 Pulling latest code..."
-          git fetch origin
-          git reset --hard origin/main
+            echo "📥 Pulling latest code..."
+            git fetch origin
+            git reset --hard origin/main
 
-          echo "📦 Installing dependencies (light mode)..."
-          npm ci --omit=dev --no-audit --no-fund
+            echo "📦 Installing production deps only..."
+            npm ci --omit=dev --no-audit --no-fund
 
-          echo "⚙️ Generating Prisma client..."
-          npx prisma generate
+            echo "⚙️ Generating Prisma client..."
+            npx prisma generate
 
-          echo "🏗️ Building Next.js (low memory)..."
-          NODE_OPTIONS="--max-old-space-size=512" npm run build
+            echo "🚀 Restarting app..."
+            pm2 reload nextjs-app || pm2 start npm --name "nextjs-app" -- start
 
-          echo "🚀 Restarting app..."
-          pm2 reload nextjs-app || pm2 start npm --name "nextjs-app" -- start
-
-          echo "✅ Deployment complete"
+            echo "✅ Deployment complete"
