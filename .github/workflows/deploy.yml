@@ -42,21 +42,18 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            set -e
+           set -e
 
-            cd ~/next_vercel
+           cd ~/next_vercel
 
-            echo "📥 Pulling latest code..."
-            git fetch origin
-            git reset --hard origin/main
+           echo "📥 Pulling latest code..."
+           git fetch origin
+           git reset --hard origin/main
 
-            echo "📦 Installing production deps only..."
-            npm ci --omit=dev --no-audit --no-fund
+           echo "⚙️ Generating Prisma client..."
+           npx prisma generate
 
-            echo "⚙️ Generating Prisma client..."
-            npx prisma generate
+           echo "🚀 Restarting app..."
+           pm2 reload nextjs-app || pm2 start npm --name "nextjs-app" -- start
 
-            echo "🚀 Restarting app..."
-            pm2 reload nextjs-app || pm2 start npm --name "nextjs-app" -- start
-
-            echo "✅ Deployment complete"
+           echo "✅ Deployment complete"
