@@ -1,0 +1,39 @@
+name: Deploy Next.js to EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:   # 👈 this enables manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/next_vercel
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart nextjs-app || pm2 start npm --name "nextjs-app" -- start
